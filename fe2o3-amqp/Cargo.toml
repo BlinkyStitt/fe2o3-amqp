@@ -79,6 +79,8 @@ ring = { version = "0.17", default-features = false, optional = true }
 tokio-stream = { version = "0.1", features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+# UUID v4 needs an explicit browser randomness backend on this target.
+uuid = { workspace = true, features = ["js"], optional = true }
 tokio = { workspace = true, features = ["sync", "io-util", "rt", "macros"] } # "net" feature doesn't support wasm32
 ring = { version = "0.17", default-features = false, features = ["wasm32_unknown_unknown_js"], optional = true }
 getrandom = { workspace = true }
