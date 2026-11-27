@@ -7,6 +7,7 @@
 //! - GET-ATTRIBUTES
 //! - GET-OPERATIONS
 //! - GET-MGMT-NODES
+//!
 //! The following Management Node Operations MAY be supported:
 //! - REGISTER
 //! - DEREGISTER

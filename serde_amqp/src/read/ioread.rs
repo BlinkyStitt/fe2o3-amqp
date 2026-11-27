@@ -31,14 +31,33 @@ impl<R: io::Read> IoReader<R> {
 
     /// Fill the internal buffer with the given length
     pub fn fill_buffer(&mut self, len: usize) -> Result<(), Error> {
-        let l = self.buf.len();
-        if l < len {
-            self.buf.resize(len, 0);
-            self.reader.read_exact(&mut self.buf[l..])?;
-            Ok(())
-        } else {
-            Ok(())
+        self.fill_buffer_io(len).map_err(Into::into)
+    }
+
+    fn fill_buffer_io(&mut self, len: usize) -> io::Result<()> {
+        let mut filled = self.buf.len();
+        if filled >= len {
+            return Ok(());
         }
+        self.buf.resize(len, 0);
+        while filled < len {
+            match self.reader.read(&mut self.buf[filled..]) {
+                Ok(0) => {
+                    self.buf.truncate(filled);
+                    return Err(io::Error::new(
+                        io::ErrorKind::UnexpectedEof,
+                        "failed to fill whole buffer",
+                    ));
+                }
+                Ok(n) => filled += n,
+                Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+                Err(error) => {
+                    self.buf.truncate(filled);
+                    return Err(error);
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -88,18 +107,10 @@ impl<'de, R: io::Read + 'de> Read<'de> for IoReader<R> {
 
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<(), io::Error> {
         let n = buf.len();
-        let l = self.buf.len();
-
-        if l < n {
-            (buf[..l]).copy_from_slice(&self.buf[..l]);
-            self.reader.read_exact(&mut buf[l..])?;
-            self.buf.drain(..l);
-            Ok(())
-        } else {
-            buf.copy_from_slice(&self.buf[..n]);
-            self.buf.drain(..n);
-            Ok(())
-        }
+        self.fill_buffer_io(n)?;
+        buf.copy_from_slice(&self.buf[..n]);
+        self.buf.drain(..n);
+        Ok(())
     }
 
     fn forward_read_bytes<V>(&mut self, len: usize, visitor: V) -> Result<V::Value, Error>
@@ -284,5 +295,39 @@ mod tests {
 
         assert_eq!(peek0, &SHORT_BUFFER[..2]);
         assert_eq!(peek1, &SHORT_BUFFER[..2]);
+    }
+
+    #[test]
+    fn failed_peek_preserves_partial_bytes_without_padding() {
+        let mut reader = IoReader::new(std::io::Cursor::new(SHORT_BUFFER));
+        assert!(reader.peek_bytes(10).is_none());
+        for &byte in SHORT_BUFFER {
+            assert_eq!(reader.next(), Some(byte));
+        }
+        assert!(reader.next().is_none());
+    }
+
+    #[test]
+    fn read_exact_retries_interrupted_reads() {
+        struct InterruptedOnce {
+            reader: std::io::Cursor<&'static [u8]>,
+            interrupted: bool,
+        }
+        impl std::io::Read for InterruptedOnce {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                if !self.interrupted {
+                    self.interrupted = true;
+                    return Err(std::io::ErrorKind::Interrupted.into());
+                }
+                let len = buf.len().min(1);
+                std::io::Read::read(&mut self.reader, &mut buf[..len])
+            }
+        }
+        let mut reader = IoReader::new(InterruptedOnce {
+            reader: std::io::Cursor::new(SHORT_BUFFER),
+            interrupted: false,
+        });
+        assert_eq!(reader.read_const_bytes::<3>(), Some([0, 1, 2]));
+        assert!(reader.next().is_none());
     }
 }

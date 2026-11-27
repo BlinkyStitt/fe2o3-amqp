@@ -1,5 +1,9 @@
 //! Implementation of AMQP1.0 sender
 
+// Protocol errors retain recovery state and existing public by-value error APIs.
+// Boxing them here would change those APIs and add allocations to link operations.
+#![allow(clippy::result_large_err)]
+
 use bytes::{Bytes, BytesMut};
 use tokio::sync::{mpsc, oneshot};
 

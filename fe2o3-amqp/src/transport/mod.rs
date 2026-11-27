@@ -16,7 +16,7 @@ use fe2o3_amqp_types::{
 
 use std::{io, marker::PhantomData, task::Poll, time::Duration};
 
-use bytes::BytesMut;
+use bytes::{Bytes, BytesMut};
 use futures_util::{Future, Sink, SinkExt, Stream, StreamExt};
 use pin_project_lite::pin_project;
 use tokio::io::{AsyncRead, AsyncWrite, ReadHalf, WriteHalf};
@@ -430,8 +430,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write
-            .poll_ready(cx) // Result<_, std::io::Error>
+        Sink::<Bytes>::poll_ready(this.framed_write, cx) // Result<_, std::io::Error>
             .map_err(Into::into)
     }
 
@@ -463,8 +462,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write
-            .poll_flush(cx) // Result<_, std::io::Error>
+        Sink::<Bytes>::poll_flush(this.framed_write, cx) // Result<_, std::io::Error>
             .map_err(Into::into)
     }
 
@@ -473,8 +471,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write
-            .poll_close(cx) // Result<_, std::io::Error>
+        Sink::<Bytes>::poll_close(this.framed_write, cx) // Result<_, std::io::Error>
             .map_err(Into::into)
     }
 }
@@ -540,7 +537,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write.poll_ready(cx).map_err(Into::into)
+        Sink::<Bytes>::poll_ready(this.framed_write, cx).map_err(Into::into)
     }
 
     // #[instrument(skip_all)]
@@ -563,7 +560,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write.poll_flush(cx).map_err(Into::into)
+        Sink::<Bytes>::poll_flush(this.framed_write, cx).map_err(Into::into)
     }
 
     fn poll_close(
@@ -571,7 +568,7 @@ where
         cx: &mut std::task::Context<'_>,
     ) -> Poll<Result<(), Self::Error>> {
         let this = self.project();
-        this.framed_write.poll_close(cx).map_err(Into::into)
+        Sink::<Bytes>::poll_close(this.framed_write, cx).map_err(Into::into)
     }
 }
 
