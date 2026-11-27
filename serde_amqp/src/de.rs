@@ -530,7 +530,7 @@ impl<'de, R: Read<'de>> Deserializer<R> {
     }
 }
 
-impl<'de, 'a, R> de::Deserializer<'de> for &'a mut Deserializer<R>
+impl<'de, R> de::Deserializer<'de> for &mut Deserializer<R>
 where
     R: Read<'de>,
 {

@@ -7,6 +7,8 @@
 
 use token::CbsToken;
 
+// CBS retains the existing transport errors and their recovery state.
+#[allow(clippy::result_large_err)]
 pub mod client;
 pub mod constants;
 pub mod put_token;
@@ -23,7 +25,7 @@ pub trait CbsTokenProvider {
         container_id: impl AsRef<str>,
         resource_id: impl AsRef<str>,
         claims: impl IntoIterator<Item = impl AsRef<str>>,
-    ) -> Result<CbsToken, Self::Error>;
+    ) -> Result<CbsToken<'_>, Self::Error>;
 }
 
 /// An async version of `CbsTokenProvider`

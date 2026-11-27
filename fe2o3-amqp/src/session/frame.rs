@@ -4,6 +4,8 @@ use crate::Payload;
 
 pub(crate) type SessionIncomingItem = SessionFrame;
 
+// Keep single frames inline on the normal send path, without a heap allocation.
+#[allow(clippy::large_enum_variant)]
 pub(crate) enum SessionOutgoingItem {
     SingleFrame(SessionFrame),
     MultipleFrames(Vec<SessionFrame>),

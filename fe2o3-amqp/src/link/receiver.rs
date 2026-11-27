@@ -1,5 +1,9 @@
 //! Implementation of AMQP1.0 receiver
 
+// Protocol errors retain recovery state and existing public by-value error APIs.
+// Boxing them here would change those APIs and add allocations to link operations.
+#![allow(clippy::result_large_err)]
+
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use fe2o3_amqp_types::{

@@ -52,6 +52,8 @@ impl<S> TokioWebSocketStream<S> {
     }
 }
 
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 impl<S> Stream for TokioWebSocketStream<S>
 where
     S: AsyncRead + AsyncWrite + Unpin,
@@ -96,6 +98,8 @@ where
     }
 }
 
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 impl WebSocketStream<TokioWebSocketStream<MaybeTlsStream<TcpStream>>> {
     /// Calls [`tokio_tungstenite::connect_async`] internally with `"Sec-WebSocket-Protocol"` HTTP
     /// header of the `req` set to `"amqp"`
@@ -136,6 +140,8 @@ impl WebSocketStream<TokioWebSocketStream<MaybeTlsStream<TcpStream>>> {
     }
 }
 
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 impl<S> WebSocketStream<TokioWebSocketStream<S>>
 where
     S: AsyncRead + AsyncWrite + Unpin,
@@ -259,6 +265,8 @@ where
     feature = "rustls-tls-native-roots",
     feature = "rustls-tls-webpki-roots"
 ))]
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 impl WebSocketStream<TokioWebSocketStream<MaybeTlsStream<TcpStream>>> {
     /// Calls [`tokio_tungstenite::connect_async_tls_with_config`] internally with
     /// `"Sec-WebSocket-Protocol"` HTTP header of the `req` set to `"amqp"`
@@ -286,6 +294,8 @@ impl WebSocketStream<TokioWebSocketStream<MaybeTlsStream<TcpStream>>> {
     }
 }
 
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 fn map_amqp_websocket_request(req: impl IntoClientRequest) -> Result<Request, tungstenite::Error> {
     let mut request = req.into_client_request()?;
 
@@ -301,6 +311,8 @@ fn map_amqp_websocket_request(req: impl IntoClientRequest) -> Result<Request, tu
     Ok(request)
 }
 
+// Preserve the existing by-value HTTP/WebSocket error API.
+#[allow(clippy::result_large_err)]
 fn verify_response(response: Response) -> Result<Response, Error> {
     use http::StatusCode;
 

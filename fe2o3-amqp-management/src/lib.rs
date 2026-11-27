@@ -5,8 +5,11 @@
 //! Because the AMQP 1.0 management working draft itself isn't stable yet, this crate is
 //! expected to see breaking changes in all future releases until the draft becomes stable.
 
+// Management operations preserve the transport errors and their recovery state.
+#[allow(clippy::result_large_err)]
 pub mod client;
 pub mod error;
+#[allow(clippy::result_large_err)]
 pub mod operations;
 pub mod status;
 

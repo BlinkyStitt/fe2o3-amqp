@@ -613,6 +613,8 @@ impl LinkRelay<()> {
 }
 
 impl LinkRelay<OutputHandle> {
+    // Preserve the channel error with its recoverable, unsent protocol frame.
+    #[allow(clippy::result_large_err)]
     pub(crate) async fn send(
         &mut self,
         frame: LinkFrame,
@@ -812,6 +814,8 @@ impl LinkRelay<OutputHandle> {
     }
 
     /// This is cancel safe because it only .await on sending over `tokio::mpsc::Sender`
+    // Preserve the channel error with its recoverable, unsent protocol frame.
+    #[allow(clippy::result_large_err)]
     pub async fn on_incoming_detach(
         &mut self,
         detach: Detach,
